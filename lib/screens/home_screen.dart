@@ -17,8 +17,6 @@ class _HomeScreenState extends State<HomeScreen> {
   @override
   void initState() {
     super.initState();
-
-    // Read and parse JSON that contains the card list
     pokemonCards = fetchPokemonData();
   }
 
@@ -26,9 +24,7 @@ class _HomeScreenState extends State<HomeScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text(
-          'My Collections',
-        ),
+        title: const Text('My Collections'),
         actions: const [
           Padding(
             padding: EdgeInsets.only(right: 8.0),
@@ -43,17 +39,29 @@ class _HomeScreenState extends State<HomeScreen> {
           child: FutureBuilder<List<PokemonCard>>(
             future: pokemonCards,
             builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
+
               if (snapshot.hasError) {
-                return const Center(
-                  child: Text('An error has occurred!'),
-                );
-              } else if (snapshot.hasData) {
-                return CardCollection(pokemonCards: snapshot.data!);
-              } else {
-                return const Center(
-                  child: CircularProgressIndicator(),
+                print('❌ Error saat fetch data: ${snapshot.error}');
+                print('Stack trace: ${snapshot.stackTrace}');
+
+                return Center(
+                  child: Text(
+                    'An error has occurred!\n\n${snapshot.error}',
+                    textAlign: TextAlign.center,
+                  ),
                 );
               }
+
+              if (snapshot.hasData) {
+                return CardCollection(pokemonCards: snapshot.data!);
+              }
+
+              return const Center(
+                child: Text('No data found.'),
+              );
             },
           ),
         ),
